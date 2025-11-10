@@ -1,0 +1,70 @@
+version 1.0
+
+# Run salmon quantification on paired-end data. No scattering- currently set up for a 
+# single paired-end sample in a Terra data table. Terra can be run for multiple samples 
+# at once.
+
+workflow salmon_workflow {
+  input {
+    File fastq1
+	File fastq2
+	File salmon_index
+	String sample_id
+  }
+   
+  call salmon_quant {
+    input:
+      fastq1 = fastq1,
+      fastq2 = fastq2,
+      salmon_index = salmon_index,
+      sample_id = sample_id
+  	}
+
+  output {
+	Directory quant_folder = salmon_quant.quant_folder
+  }
+}
+
+task salmon_quant {
+	input {
+		File fastq1
+		File fastq2
+		String sample_id
+		File salmon_index
+	}
+	
+# dynamically calculate disk size needs
+
+	Int disk_size = ceil((size(fastq1, "GB") + size(fastq2, "GB")) * 3)
+	
+# run salmon
+	
+	command <<<
+	  set -euo pipefail
+	  salmon quant \
+		-i ~{salmon_index} \
+		-l A \
+		-1 ~{fastq1} \
+		-2 ~{fastq2} \
+		-p 2 \
+		-o ~{sample_id}_quant \
+		--seqBias \
+		--useVBOpt \
+		--validateMappings 
+	>>>
+		
+	output {
+		Directory quant_folder = "~{sample_id}_quant"
+		}
+
+# default runtime set-up, modify as needed		
+	runtime {
+    	docker: "quay.io/biocontainers/salmon:1.10.2--hfc1ae40_0"
+   		cpu: 4
+    	memory: "8G"
+    	disks: "local-disk " + disk_size + " SSD"
+    	preemptible: 1
+    	}
+}
+
+
