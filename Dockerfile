@@ -1,3 +1,4 @@
+# creates image for running sratoolkit, one option to pull sequencing data from sra repository
 # Use Ubuntu as a base image (includes bash)
 FROM ubuntu:22.04
 
