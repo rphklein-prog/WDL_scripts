@@ -3,7 +3,7 @@ version 1.0
 # This workflow starts with a Terra data table with SRR ids in a column. It pulls data 
 # from sra then trims adapters with bbduk (defaults are Illumina universal adapters), runs
 # fastqc to check that adapters have been removed and sequence quality is acceptable, and 
-# finally, quantifies reads with salmon. 
+# finally, quantifies reads with salmon. Assumes data is paired-end with F and R reads.
 
 workflow fetch_sra_to_fastqc {
   input {
@@ -12,7 +12,7 @@ workflow fetch_sra_to_fastqc {
 	Int cpu = 4
 	Int memory = 8
 	String sample_id
-	File salmon_index_tar
+	File salmon_index_tar 
   }
   
   call fastq_dl_sra {
@@ -23,25 +23,25 @@ workflow fetch_sra_to_fastqc {
 # use bbduk to trim adapters from reads (default are Illumina universal adapters)
   call bbduk {
     input:
-      fastq1 = fastq_dl_sra.reads[0]
-      fastq2 = if size(fastq_dl_sra.reads) > 1 then fastq_dl_sra.reads[1] else null  
+      fastq1 = fastq_dl_sra.reads[0],
+      fastq2 = fastq_dl_sra.reads[1] 
   }
   
   # run fastqc on both forward and reverse reads by scattering
   scatter (fq in bbduk.trimmed_reads){
     call fastqc {
    	  input:
-        fastq = fq
-        addldisk = addldisk
-        cpu = cpu
+        fastq = fq,
+        addldisk = addldisk,
+        cpu = cpu,
         memory = memory    
     }
   }
-    
+  
   call salmon_quant {
     input:
-      fastq1 = bbduk.trimmed_reads[0]
-      fastq2 = if size(bbduk.trimmed_reads) > 1 then bbduk.trimmed_reads[1] else null
+      fastq1 = bbduk.trimmed_reads[0],
+      fastq2 = bbduk.trimmed_reads[1],
       salmon_index_tar = salmon_index_tar,
       sample_id = sample_id
   }
@@ -49,7 +49,7 @@ workflow fetch_sra_to_fastqc {
   
   output {
     Array[File] reads = fastq_dl_sra.reads
-    Array[File] report = flatten(fastqc.*.html_report)
+    Array[File] report = flatten(fastqc.html_report)
     Array[File] trimmed_reads = bbduk.trimmed_reads
     File quant_sf = salmon_quant.quant_sf
     Array[File] quant_results = salmon_quant.quant_results
@@ -117,30 +117,26 @@ task fastqc {
 task bbduk {
   input {
     File fastq1
-    File? fastq2
+    File fastq2
     String adapter_F = "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT"
     String adapter_R = "GATCGGAAGAGCACACGTCTGAACTCCAGTCACGGATGACTATCTCGTATGCCGTCTTCTGCTTG"
   }
   
   # dynamically calculate disk needs
-  Int disk_size = ceil((size(fastq1, "GB") + (fastq2 ? size(fastq2, "GB") : 0)) * 3)
+  Int disk_size = ceil((size(fastq1, "GB") + (if defined(fastq2) then size(fastq2, "GB") else 0)) * 3)
   
   # strip the name from the fastq1 file to use for outputs
   String prefix = sub(basename(fastq1), "\\.f(ast)?q(\\.gz)?$", "")
   
-  # set up to handle situation with only 1 fastq (single end sequencing)
-  String out1 = "~{prefix}_trimmed_1.fastq.gz"
-  String? out2 = fastq2 ? "~{prefix}_trimmed_2.fastq.gz"
   
   command <<<
     set -euxo pipefail
     # Run bbduk
-    if [ -f "~{fastq2}" ]; then
-      bbduk.sh \
+    bbduk.sh \
       in1=~{fastq1} \
       in2=~{fastq2} \
-      out1=~{out1} \
-      out2=~{out2} \
+      out1=~{prefix}_trimmed_1.fastq.gz \
+      out2=~{prefix}_trimmed_2.fastq.gz \
       literal=~{adapter_F},~{adapter_R} \
       ktrim=r \
       k=23 \
@@ -148,16 +144,6 @@ task bbduk {
       hdist=1 \
       tpe \
       tbo
-    else
-      bbduk.sh \
-      in=~{fastq1} \
-      out=~{out1} \
-      literal=~{adapter_F},~{adapter_R} \
-      ktrim=r \
-      k=23 \
-      mink=11 \
-      hdist=1
-    fi
   >>>
 
   output {
@@ -173,11 +159,12 @@ task bbduk {
   }
 }
 
+
 # Run salmon quantification
 task salmon_quant {
   input {
     File fastq1
-    File? fastq2
+    File fastq2
     String sample_id
     File salmon_index_tar
   }
@@ -188,29 +175,16 @@ task salmon_quant {
     # extract salmon index and put into a folder
     tar -xzvf ~{salmon_index_tar}
     INDEX_DIR=$(tar -tzf ~{salmon_index_tar} | head -1 | cut -f1 -d"/" || echo ".")
-    # use reverse reads if present, otherwise quantify as single end
-    if [ -f "~{fastq2}" ]; then
-      salmon quant \
-        -i "${INDEX_DIR}" \
-        -l A \
-        -1 ~{fastq1} \
-        -2 ~{fastq2} \
-        -p 4 \
-        -o "~{sample_id}_quant" \
-        --seqBias \
-        --useVBOpt \
-        --validateMappings 
-    else
-      salmon quant \
-        -i "${INDEX_DIR}" \
-        -l A \
-        -r ~{fastq1} \
-        -p 4 \
-        -o "~{sample_id}_quant" \
-        --seqBias \
-        --useVBOpt \
-        --validateMappings 
-    fi
+    salmon quant \
+      -i "${INDEX_DIR}" \
+      -l A \
+      -1 ~{fastq1} \
+      -2 ~{fastq2} \
+      -p 4 \
+      -o "~{sample_id}_quant" \
+      --seqBias \
+      --useVBOpt \
+      --validateMappings 
   >>>
 		
   output {
