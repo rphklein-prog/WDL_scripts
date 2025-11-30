@@ -1,22 +1,29 @@
-# creates image for running sratoolkit, one option to pull sequencing data from sra repository
-# Use Ubuntu as a base image (includes bash)
-FROM ubuntu:22.04
+# Use bioconductor container as a base image
+FROM bioconductor/bioconductor_docker:devel
+
+WORKDIR /cromwell_root
 
 # Prevent interactive prompts during package installs
 ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN=true
 
-# Install bash and other dependencies
-RUN apt-get update && \
+RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
-        bash wget ca-certificates tar gzip && \
+        g++ \
+        zip \
+        unzip \
+        make \
+        libxml2-dev \
+        libpng-dev \
+        libjpeg-dev \
+        libcurl4-openssl-dev \
+        zlib1g-dev \
+        libbz2-dev \
+        libpcre3-dev \
+        libssl-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Install SRA Toolkit
-RUN mkdir -p /opt/sratoolkit && \
-	wget -q https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/current/sratoolkit.current-ubuntu64.tar.gz && \
-    tar -xzf sratoolkit.current-ubuntu64.tar.gz -C /opt/sratoolkit --strip-components=1 && \
-    ln -s /opt/sratoolkit/bin/* /usr/local/bin/ && \
-    rm sratoolkit.current-ubuntu64.tar.gz
+# Install desired Bioconductor packages
+RUN R -e "BiocManager::install(c('ensembldb', 'EnsDb.Hsapiens.v75', 'tximport', 'edgeR', 'goseq', 'GO.db', 'org.Hs.eg.db', 'gplots', 'ggplot2', 'ggrepel', 'ghibli', 'GenomicFeatures'), ask = FALSE, update = TRUE)"
 
-# Default shell
-CMD ["/bin/bash"]
+RUN rm -rf /tmp/Rtmp*
