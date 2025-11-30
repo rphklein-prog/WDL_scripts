@@ -1,5 +1,5 @@
 # WDL_scripts
-WDL scripts for bioinformatic analysis on Terra. Included scripts:
+WDL scripts for RNA-seq analysis on Terra. Included scripts:
 
 fetch_trim_fastqc_salmon.wdl: combines functions into a single workflow: fetches data from SRA repository based on SRR accessions, 
 trims adapters from reads, runs fastqc, and then quantifies counts with salmon.
