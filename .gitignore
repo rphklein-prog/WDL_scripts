@@ -1,0 +1,86 @@
+# -----------------------------
+# WDL / Workflow Development
+# -----------------------------
+
+# MiniWDL run directories
+_miniwdl_runs/
+_miniwdl_cromwell_inputs/
+_run/
+
+# Cromwell execution directories
+cromwell-executions/
+cromwell-workflow-logs/
+call-*/  # sometimes cromwell creates these in dev environments
+
+# Temporary WDL test files
+*.wdl.tmp
+*.inputs.json
+*.json.tmp
+
+# Large runtime outputs (never store data!)
+*.bam
+*.sam
+*.fastq
+*.fq
+*.fastq.gz
+*.fq.gz
+*.fq.gz.md5
+*.fastq.md5
+*.gz
+*.tar
+*.tgz
+*.tar.gz
+*.zip
+*.idx
+*.fa
+*.fasta
+*.fai
+*.gtf
+*.gff
+*.gff3
+
+# Avoid committing reference genomes or indices
+ref/
+references/
+genomes/
+index/
+indexes/
+salmon_index/
+star_index/
+kallisto_index/
+
+# -----------------------------
+# Common development artifacts
+# -----------------------------
+
+# Python virtual environments
+venv/
+.env/
+.venv/
+env/
+
+# Conda environments
+*.conda
+*.yaml
+
+# macOS files
+.DS_Store
+
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Shell scripts artifacts
+*.log
+*.tmp
+*.bak
+
+# -----------------------------
+# Optional: Ignore any test-output directories
+# -----------------------------
+test-output/
+outputs/
+results/
+logs/
