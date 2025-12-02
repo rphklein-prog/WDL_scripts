@@ -1,5 +1,5 @@
 # WDL_scripts
-WDL scripts for RNA-seq analysis on Terra. Included scripts:
+WDL workflows and scripts for RNA-seq analysis on Terra. Included scripts:
 
 full_rnaseq_analysis.wdl: combines functions into a single workflow: starts with a list of SRA accession numbers (can be a Terra data table with 
 SRR ids in a column), a list matching each SRA accession number to a sample type (ex- Treatment or Control), and the desired salmon index for 
