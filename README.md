@@ -30,6 +30,3 @@ Tximport: generate a counts table from quantification files (https://bioconducto
 EdgeR: differential expression analysis (https://bioconductor.org/packages/release/bioc/html/edgeR.html)
 
 GOseq: perform gene ontology analysis (https://bioconductor.org/packages/release/bioc/html/goseq.html)
-
-Also included for reference- Dockerfile for Docker image rphklein/txi_edger_plots:1.0 used for txi_edger_go_plot.wdl (image can 
-be pulled from Dockerhub)
