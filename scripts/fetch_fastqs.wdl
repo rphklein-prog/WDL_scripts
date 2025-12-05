@@ -1,5 +1,7 @@
 version 1.0
 
+# pulls fastq files from sra repository based on given sra accession number
+
 workflow fetch_sra_to_fastq {
   input {
     String sra_accession
