@@ -3,9 +3,27 @@ version 1.0
 # This workflow starts with a Terra data table with SRR ids in a column. It pulls data 
 # from sra then trims adapters with bbduk (defaults are Illumina universal adapters), runs
 # fastqc to check that adapters have been removed and sequence quality is acceptable, and 
-# finally, quantifies reads with salmon. Assumes data is paired-end with F and R reads.
+# finally, quantifies reads with salmon. This workflow is configured to be run per row
+in a Terra data table. Assumes data is paired-end with F and R reads.
 
 workflow fetch_sra_to_fastqc {
+  meta {
+    author: "Rachel Klein"
+    description: "Workflow for processing and quantifying RNA-seq data"
+    outputs:
+    quant_sfs: "array of salmon quantification files for all samples"
+    report: ".html output of FastQC with metrics of sequence quality"
+    quant_results: "full results from Salmon"      
+    }
+  
+  parameter_meta {
+    sra_accesion: "SRA accession number for sample to be pulled and analyzed"
+    addldisk: "increase disk size by this much for running fastqc"
+    cpu: "number of CPUs to use for fastqc"
+    memory: "memory allocation in GB for fastqc"
+    salmon_index_tar: "tar compressed file of salmon index, can be downloaded from refgenie and added to terra strorage bucket for referencing in workflow"
+  }
+  
   input {
     String sra_accession
     Int addldisk = 10
@@ -43,7 +61,7 @@ workflow fetch_sra_to_fastqc {
       fastq1 = bbduk.trimmed_reads[0],
       fastq2 = bbduk.trimmed_reads[1],
       salmon_index_tar = salmon_index_tar,
-      sample_id = sample_id
+      sample_id = sra_accession
   }
 
   
@@ -65,11 +83,6 @@ task fastq_dl_sra {
     # write version to VERSION file for records
     fastq-dl --version | tee VERSION
     fastq-dl --accession ~{sra_accession}
-
-    # tag single-end reads with _1
-    if [ -f "~{sra_accession}.fastq.gz" ] && [ ! -f "~{sra_accession}_1.fastq.gz" ]; then
-      mv "~{sra_accession}.fastq.gz" "~{sra_accession}_1.fastq.gz"
-    fi
   >>>
   
   output {
