@@ -1,0 +1,7 @@
+{
+  "full_rna_seq.sra_accessions": ["SRR36267714", "SRR36267712", "SRR36267715", "SRR36267716"],
+  "full_rna_seq.groups": ["CRISPR", "CRISPR", "WT", "WT"],
+  "full_rna_seq.salmon_index_tar": "https://github.com/rphklein-prog/WDL_scripts/raw/main/examples/salmon_chr22_index.tar.gz",
+  "full_rna_seq.transcriptome_name": "EnsDb.Hsapiens.v75",
+  "full_rna_seq.output_name": "example_outputs"
+}
