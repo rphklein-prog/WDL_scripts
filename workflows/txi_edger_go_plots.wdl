@@ -1,5 +1,9 @@
 version 1.0
 
+# This workflow performs EdgeR differential analysis after salmon quantification, runs 
+# gene ontology with Goseq and generates plots including mds, heatmap, and volcano plots.
+
+
 workflow run_txi_edger {
   input {
     String transcriptome_name
