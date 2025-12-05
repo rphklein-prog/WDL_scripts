@@ -5,6 +5,29 @@ version 1.0
 
 
 workflow run_txi_edger {
+  meta {
+    author: "Rachel Klein"
+    description: "Workflow for running EdgeR differential expression and downstream analysis"
+    outputs: {
+      quant_sfs: "array of salmon quantification files for all samples"
+      log_counts: "table containing all samples with log normalized counts per million for each gene"
+      edger_table: "output from edgeR after model fitting and differential analysis"
+      mds_plot: "multi-dimensional scaling plot of analyzed samples"
+      go_all: "output of GOseq analysis for all differentially expressed genes"
+      go_up: "output of GOseq analysis for upregulated genes"
+      go_down: "output of GOseq analysis for downregulated genes"
+      sig_genes: "file of significantly differentially expressed genes (subset of edger_table)"
+      heatmap: "heatmap of 100 most differentially expressed genes (by logFC)"
+      volcano: "volcano plot of edgeR results"
+    }
+  }
+  
+  parameter_meta {
+    groups: "list IDing the group for each sample (ex Control, Control, Treatment, ...)"
+    transcriptome_name: "transcriptome to use for tximports to generate counts table with ids"
+    output_name: "name for the output files and plots"
+    rscript: "Full_R_analysis.r rscript to run edgeR and plotting functions"
+  }
   input {
     String transcriptome_name
     Array[String] data_groups
