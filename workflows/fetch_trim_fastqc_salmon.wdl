@@ -4,7 +4,7 @@ version 1.0
 # from sra then trims adapters with bbduk (defaults are Illumina universal adapters), runs
 # fastqc to check that adapters have been removed and sequence quality is acceptable, and 
 # finally, quantifies reads with salmon. This workflow is configured to be run per row
-in a Terra data table. Assumes data is paired-end with F and R reads.
+# in a Terra data table. Assumes data is paired-end with F and R reads.
 
 workflow fetch_sra_to_fastqc {
   meta {
